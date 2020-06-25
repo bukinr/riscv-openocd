@@ -29,6 +29,7 @@
 
 #define DMI_DATA1 (DMI_DATA0 + 1)
 #define DMI_PROGBUF1 (DMI_PROGBUF0 + 1)
+#define MAX_READ_SIZE 16384
 
 static int riscv013_on_step_or_resume(struct target *target, bool step);
 static int riscv013_step_or_resume_current_hart(struct target *target, bool step);
@@ -2545,7 +2546,7 @@ static int write_memory_bus_v0(struct target *target, target_addr_t address,
 		access = 0;
 		access = set_field(access, DMI_SBCS_SBACCESS, size/2);
 		dmi_write(target, DMI_SBCS, access);
-		LOG_DEBUG("\r\naccess:  0x%08" PRIx64, access);
+		LOG_DEBUG("\r\naccess:  0x%08" PRIx32, access);
 		LOG_DEBUG("\r\nwrite_memory:SAB: ONE OFF: value 0x%08" PRIx64, value);
 		dmi_write(target, DMI_SBDATA0, value);
 		return ERROR_OK;
@@ -2556,7 +2557,7 @@ static int write_memory_bus_v0(struct target *target, target_addr_t address,
 	access = 0;
 	access = set_field(access, DMI_SBCS_SBACCESS, size/2);
 	access = set_field(access, DMI_SBCS_SBAUTOINCREMENT, 1);
-	LOG_DEBUG("\r\naccess:  0x%08" PRIx64, access);
+	LOG_DEBUG("\r\naccess:  0x%08" PRIx32, access);
 	dmi_write(target, DMI_SBCS, access);
 
 	/*2)set the value according to the size required and write*/
@@ -3246,7 +3247,7 @@ static int riscv013_test_sba_config_reg(struct target *target,
 	uint32_t max_sbdata_regs = get_num_sbdata_regs(target);
 	uint32_t num_sbdata_regs;
 
-	uint32_t rd_buf[num_sbdata_regs];
+	uint32_t rd_buf[MAX_READ_SIZE / 4];
 
 	/* Test 1: Simple write/read test */
 	test_passed = true;
